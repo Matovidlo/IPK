@@ -1,0 +1,130 @@
+<p>.\&ldquo; Process this file with
+.\&rdquo; groff -man -Tascii foo.1
+.\&ldquo;
+.TH FOO 1 "MARCH 1995&rdquo; Linux &ldquo;User Manuals&rdquo;
+.SH NAME
+ftrestd - server which communicates within HTTP protocol
+.SH SYNOPSIS
+.B ftrestd [-r
+.I ROOT-FOLDER
+.B ] [-p
+.I PORT
+.B ]
+.SH DESCRIPTION
+B.ftrestd
+is a simple server, which supports RESTFul APIs and provides simple communication. Server can upload (GET) file, download (PUT) file, create or remove directory, list directory contents. Remote upload or download is performed by client ftrest.
+.SH OPTIONS
+.IP &ldquo;-r ROOT-FOLDER&rdquo;
+Specifies root folder where are contents stored, downloaded.
+.IP &ldquo;-p PORT&rdquo;
+Port is a number, on which server is listening to incomming remote communication.
+.SH IMPLEMENTATION
+The server is implemented as IPv6 concurrent server. It is listening on port for any inbound communication. After listening phase server accepts communication. At first, server waits for BSD socket from client which is supposed to be REST header, server checks wether it is REST header. Within loop is accepting packets where should be body of REST message. According to REST command the server execute it - if any error occurs, message contains information about failure on server side. The server ends when SIGINT signal is given (Ctrl-C).
+.SH ERRORS
+In case of wrong arguments or network problems(connect,accept, etc..), a program exits with code 1. If something goes wrong when performing operations with file or directory, an error message is sent back to the remote.
+.SH EXAMPLES
+<strong>ftrestd -p 8888</strong>
+: initiate a connection with port 8888 and a root directory is default(current directory).
+<strong>ftrestd -r /home/test/folder</strong>
+: initiate a connection with default port 6677 and a root directory is set as <code>/home/test/folder</code>.
+<strong>ftrestd -r /home/test -p 8888</strong>
+: initiate a connection with port 8888 and a root directory is set as <code>/home/test/folder</code>.</p>
+
+<p>.SH AUTHOR
+Martin Vaško <a href="&#x6d;&#97;&#x69;&#108;&#116;&#x6f;&#58;&#120;&#118;&#x61;&#x73;&#107;&#x6f;&#x31;&#50;&#64;&#x66;&#105;&#x74;&#x2e;&#118;&#x75;&#x74;&#98;&#114;&#x2e;&#99;&#x7a;">&#120;&#118;&#97;&#x73;&#x6b;&#x6f;&#49;&#x32;&#64;&#102;&#x69;&#x74;&#x2e;&#118;&#x75;&#116;&#x62;&#x72;&#46;&#99;&#122;</a>
+.SH &ldquo;SEE ALSO&rdquo;
+ftrest - a REST client
+.SH NAME
+ftrest - a REST client which communicates with a ftrestd server using RESTful APIs.
+SH SYNOPSIS
+.B ftrest
+.I COMMAND
+.I REMOTE-PATH
+.B [
+.I LOCAL-PATH
+.B ]
+.SH OPTIONS
+.IP &ldquo;COMMAND&rdquo;
+Should be a RESTful operation as del, get, put, lst, mkd, rmd.
+.IP &ldquo;REMOTE-PATH&rdquo;
+Path on remote side (ftrestd server).
+.IP &ldquo;LOCAL-PATH&rdquo;
+Path in Linux filesystem where should be file copied from (put) or stored to (get).
+.SH DESCRIPTION
+.B ftrest
+is a simple client which uses RESTful APIs to communicate with a ftrestd server. A user can use this client to upload, download or remove file. Also client supports work with folder. Create or remove (empty) directory or list contents of directory. All of those operations are performed on server side performed.
+.SH IMPLEMENTATION
+The client is implemented as IPv4 client. Processes command line options and parses them into smaller pieces which contains - serverHostname (also IP ADDRESS), portNumber and realPath where is specified where on server should be action performed. From those pieces is created HTTP header which is sent to server. Client waits for reply message from server which contains HTTP status code which indicates, wether server was able to perform action or request was specified wrong. Code 200 means that action was performed. Commands as <code>get</code> and <code>lst</code> also have data which are sent on standard output.
+.SH COMMAND
+<strong>put</strong>
+:   Copy file defined by <em>LOCAL-PATH</em> to directory defined by <em>REMOTE-PATH</em> on the server.</p>
+
+<p><strong>del</strong>
+:   Delete file defined by <em>REMOTE-PATH</em> on the server.</p>
+
+<p><strong>get</strong>
+:   Copy file defined by <em>REMOTE-PATH</em> on the server to current local directory or at the place defined by <em>LOCAL-PATH</em>, if set.</p>
+
+<p><strong>lst</strong>
+:   Print content of directory defined by <em>REMOTE-PATH</em> to standard output stream (same format as <em>ls</em>).</p>
+
+<p><strong>mkd</strong>
+:   Create directory defined by <em>REMOTE-PATH</em> on the server.</p>
+
+<p><strong>rmd</strong>
+:   Delete directory defined by <em>REMOTE-PATH</em> on the server (directory must be empty).
+.SH REMOTE PATH
+:   <strong>[ protocol :// ]hostname:port/path</strong></p>
+
+<p>:   if protocol is not defined, http is used as a default protocol.</p>
+
+<p>.SH Example
+:   http://localhost:12345/tonda/foo/bar
+:   protocol is http, hostname is localhost, port is 12345 and path is tonda/foo/bar.
+.SH ERRORS
+<strong>Not a directory.</strong>
+:   Occurs when <em>REMOTE-PATH</em> is a file when processing operation lst, mkd or rmd.</p>
+
+<p><strong>Directory not found.</strong>
+:   Occurs when directory defined <em>REMOTE-PATH</em> does not exist when processing operation lst, mkd or rmd.</p>
+
+<p><strong>Directory not empty.</strong>
+:   Occurs when directory defined <em>REMOTE-PATH</em> is not empty when processing operation rmd.</p>
+
+<p><strong>Already exists.</strong>
+:   Occurs when directory  or file defined <em>REMOTE-PATH</em> already exists when processing operation mkd or put.</p>
+
+<p><strong>Not a file.</strong>
+:   Occurs when <em>REMOTE-PATH</em> is a directory when processing operation put or get.</p>
+
+<p><strong>File not found.</strong>
+:   Occurs when file defined by<em>REMOTE-PATH</em> does not exist when processing operation put or get.</p>
+
+<p><strong>User Account Not Found</strong>
+:   Occurs when operation works with user directory which does not exists.</p>
+
+<p><strong>Unknown error.</strong>
+:   For other errors when creating/removing/copying/moving operations failed on the server side.</p>
+
+<p>.SH EXAMPLES
+<strong>ftrest mkd http://localhost:12345/tonda/foo/bar</strong>
+:   create the directory <em>foo</em> in the directory <em>bar</em> which is the subdirectory of the root directory of the user <em>tonda</em>.</p>
+
+<p><strong>ftrest put http://localhost:12345/tonda/foo/bar/doc.pdf ~/doc.pdf</strong>
+:   upload the local file <em>doc.pdf</em> into the directory <em>bar</em> on the server.</p>
+
+<p><strong>ftrest get http://localhost:12345/tonda/foo/bar/doc.pdf</strong>
+:   download the remote file <em>doc.pdf</em> into the current local directory.</p>
+
+<p><strong>ftrest del http://localhost:12345/tonda/foo/bar/doc.pdf</strong>
+:   delete the remote file <em>doc.pdf</em>.
+<strong>ftrest rmd http://localhost:12345/tonda/foo/bar</strong>
+:   delete the directory <em>bar</em> on the server.</p>
+
+<p><strong>ftrest lst http://localhost:12345/tonda</strong>
+:   print content of the directory <em>tonda</em>.</p>
+
+<p>.SH AUTHOR
+Martin Vaško <a href="&#109;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#120;&#118;&#97;&#115;&#x6b;&#x6f;&#49;&#50;&#64;&#102;&#x69;&#x74;&#46;&#118;&#117;&#116;&#98;&#x72;&#46;&#x63;&#122;">&#x78;&#118;&#97;&#x73;&#x6b;&#111;&#49;&#50;&#x40;&#x66;&#105;&#x74;&#x2e;&#118;&#117;&#116;&#98;&#114;&#x2e;&#99;&#x7a;</a>
+.SH SEE ALSO
+ftrestd - a REST server.</p>
